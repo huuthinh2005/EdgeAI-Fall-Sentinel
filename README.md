@@ -1,56 +1,62 @@
 # EdgeAI-Fall-Sentinel
-# 🚨 Fall-Detection-IoT-STM32
 
-**Hệ thống phát hiện té ngã thời gian thực sử dụng Vi điều khiển nhúng (Edge-AI) và Kiến trúc viễn thông kép (Dual-Communication)**
+# Fall-Detection-IoT-STM32
 
-Đây là kho lưu trữ mã nguồn mở (Repository) thuộc Khóa luận tốt nghiệp của nhóm sinh viên khoa Công nghệ Thông tin. Dự án tập trung giải quyết bài toán phát hiện té ngã cho người cao tuổi và người lao động trong môi trường nguy hiểm thông qua việc nhúng mô hình Học máy (Machine Learning) trực tiếp lên vi điều khiển giới hạn tài nguyên.
+**Real-time Fall Detection System using Embedded Microcontroller (Edge-AI) and Dual-Communication Architecture**
 
----
-
-## 🌟 Tính năng nổi bật (Key Features)
-
-- **Edge-AI Verifier (Thuật toán Lai):** Kết hợp giữa Máy trạng thái hữu hạn (FSM) làm bộ tiền lọc và mô hình Support Vector Machine (SVM) trích xuất 9 đặc trưng động học. Đạt chỉ số **F1-score 94%** trên tập dữ liệu kiểm thử thực tế.
-- **Tối ưu hóa DSP (Digital Signal Processing):** Tự động cấu hình cảm biến ở dải đo tối đa ($\pm 16g$, $\pm 2000^\circ/s$) để chống bão hòa tín hiệu (clipping). Tích hợp bộ lọc trung bình (Decimation & Low-pass filter) cộng dồn 20 mẫu để hạ tần số từ 100Hz xuống 5Hz, đồng bộ tuyệt đối với tập dữ liệu SisFall.
-- **Viễn thông kép (Dual-Comm):** Cảnh báo song song qua mạng di động (SMS - không phụ thuộc Internet) và giao thức IoT (MQTT - QoS 1) với cơ chế chống đụng độ bộ đệm (UART Collision Avoidance).
-- **Tiết kiệm năng lượng (Low-power):** Thiết bị chạy trên xung nhịp dao động nội HSI 8MHz, duy trì dòng tiêu thụ trung bình toàn hệ thống ở mức ~17mA. Đạt thời lượng pin ~63 giờ hoạt động liên tục với viên pin LiPo 1200mAh.
-- **Cấu hình từ xa (OTA Configuration):** Cập nhật số điện thoại khẩn cấp trực tiếp qua sóng MQTT và lưu trữ vĩnh viễn vào Flash ROM (Page 62).
+This is the open-source repository for a graduation thesis by students from the Faculty of Information Technology. The project focuses on solving the fall detection problem for the elderly and workers in hazardous environments by embedding a Machine Learning model directly onto a resource-constrained microcontroller.
 
 ---
 
-## 🛠 Kiến trúc Phần cứng (Hardware Architecture)
+## Key Features
 
-Hệ thống được thiết kế theo kiến trúc xếp chồng 3 tầng tối ưu cho thiết bị đeo thắt lưng (Waist-mounted wearable):
-- **MCU:** STM32F103C8T6 (ARM Cortex-M3).
-- **Cảm biến:** MPU6050 (6-DoF Accelerometer & Gyroscope) giao tiếp qua I2C.
-- **Viễn thông:** SIM7680C (4G LTE Cat.1 & GNSS/GPS) giao tiếp qua USART2 với cơ chế cấp nguồn cách ly dòng đỉnh 2A.
-- **Giao tiếp UI/UX:** Buzzer (Còi hú tiền cảnh báo) & Nút nhấn cứng SOS (Kích hoạt/Hủy báo động).
-
----
-
-## 📂 Cấu trúc Kho lưu trữ (Repository Structure)
-
-Để đảm bảo tính minh bạch và khả năng tái lập (Reproducibility) theo yêu cầu đánh giá khoa học, kho lưu trữ này chứa toàn bộ các thành phần hệ thống:
-
-* `/firmware_stm32/`: Mã nguồn C/C++ nạp cho vi điều khiển STM32 (Triển khai luồng ngắt Timer 100Hz, thuật toán SVM tuyến tính cực nhẹ thời gian chạy < 1ms, quản lý tập lệnh AT).
-* `/ai_training_artifacts/`: (Nơi chứa Dataset và Python Scripts)
-  * File Jupyter Notebook xử lý tập dữ liệu SisFall.
-  * Script trích xuất đặc trưng và huấn luyện mô hình SVM (Tìm kiếm siêu tham số và xác định ngưỡng phân quyết $\tau = 1.102146$).
-* `/android_app/`: Mã nguồn ứng dụng giám sát trên hệ điều hành Android (Kotlin). Giao tiếp với thiết bị qua EMQX Broker và lưu log sự kiện vào Firebase.
+* **Edge-AI Verifier (Hybrid Algorithm):** Combines a Finite State Machine (FSM) as a pre-filter with a Support Vector Machine (SVM) model extracting 9 kinematic features. Achieves an **F1-score of 94%** on the internal test dataset.
+* **DSP Optimization (Digital Signal Processing):** Automatically configures the sensor to the maximum measurement range (±16g, ±2000°/s) to prevent signal saturation (clipping). Integrates a decimation and low-pass filter averaging 20 samples to downsample the frequency from 100Hz to 5Hz, ensuring absolute synchronization with the SisFall dataset.
+* **Dual-Communication (Dual-Comm):** Parallel alerting via cellular network (SMS - Internet independent) and IoT protocol (MQTT - QoS 1) with a UART collision avoidance mechanism.
+* **Low-power Consumption:** The device operates on an 8MHz HSI internal oscillator, maintaining an average system current consumption of ~17mA. Achieves an estimated runtime of ~63 hours of continuous operation with a 1200mAh LiPo battery.
+* **OTA Configuration (Over-the-Air):** Updates the emergency phone number directly via MQTT and permanently stores it in the Flash ROM (Page 62).
 
 ---
 
-## 🚀 Giới hạn của Nguyên mẫu (Limitations & Future Work)
+## Hardware Architecture
 
-1. **Bảo mật OTA:** Chức năng nhận số điện thoại qua MQTT hiện đang hoạt động ở mức nguyên mẫu. Trong tương lai cần tích hợp chứng chỉ TLS/SSL trên EMQX Broker và xác thực định dạng JSON để thiết lập Ranh giới tin cậy (Trust Boundary).
-2. **Kích thước mạch:** Phiên bản hiện tại sử dụng linh kiện cắm (Through-hole) phục vụ mục đích kiểm thử. Có thể thu gọn diện tích bằng cách thiết kế mạch in PCB linh kiện dán (SMD).
+The system is designed with a 3-layer stacked architecture optimized for a waist-mounted wearable:
+
+* **MCU:** STM32F103C8T6 (ARM Cortex-M3).
+* **Sensor:** MPU6050 (6-DoF Accelerometer & Gyroscope) communicating via I2C.
+* **Telecommunication:** SIM7680C (4G LTE Cat.1 & GNSS/GPS) communicating via USART2 with an isolated power supply mechanism handling 2A peak current.
+* **UI/UX Interface:** Buzzer (Pre-alert siren) & Hardware SOS Button (Activate/Cancel alarm).
 
 ---
 
-## 👥 Tác giả (Authors)
+## Repository Structure
 
-* **Sinh viên thực hiện:**
-  * Bùi Tấn Đạt 
-  * Hà Hữu Thịnh 
-* **Giảng viên hướng dẫn:** * ThS. Hồ Lê Minh Toàn, TS. Phạm Công Thiện
+To ensure transparency and reproducibility in accordance with scientific evaluation requirements, this repository contains all system components:
 
-*Đồ án hoàn thành vào Tháng 07/2026.*
+* `/firmware_stm32/`: C/C++ source code flashed to the STM32 microcontroller (Implements the 100Hz Timer interrupt routine, ultra-lightweight linear SVM algorithm with < 1ms execution time, and AT command management).
+* `/ai_training_artifacts/`: (Directory for Dataset and Python Scripts)
+* Jupyter Notebook file for processing the SisFall dataset.
+* Script for feature extraction and SVM model training (Hyperparameter tuning and determination of the decision threshold $\tau = 1.102146$).
+
+
+* `/android_app/`: Source code for the monitoring application on the Android operating system (Kotlin). Communicates with the device via EMQX Broker and stores event logs in Firebase.
+
+---
+
+## Limitations & Future Work
+
+1. **OTA Security:** The function to receive phone numbers via MQTT is currently operating at a prototype level. Future iterations require integrating TLS/SSL certificates on the EMQX Broker and authenticating the JSON format to establish a Trust Boundary.
+2. **Circuit Size:** The current version uses through-hole components for testing purposes. The physical footprint can be reduced by designing a PCB with surface-mount devices (SMD).
+
+---
+
+## Authors
+
+* **Performed by students:**
+* Bui Tan Dat
+* Ha Huu Thinh
+
+
+* **Supervised by:** MSc. Ho Le Minh Toan, Dr. Pham Cong Thien
+
+*Thesis completed in July 2026.*
