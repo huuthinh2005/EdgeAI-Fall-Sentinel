@@ -29,6 +29,20 @@ The system is designed with a 3-layer stacked architecture optimized for a waist
 
 ---
 
+## Flash configuration reservation
+
+The STM32F103C8T6 application Flash region is limited to 62 KB
+in `firmware/STM32F103C8TX_FLASH.ld`.
+
+The address range `0x0800F800–0x0800FFFF` is reserved for
+persistent configuration data. The emergency phone number is
+stored beginning at `0x0800F800`.
+
+The linker map generated from the final firmware build is available
+at `firmware/build-evidence/FallDetection.map`.
+
+---
+
 ## Repository Structure
 
 To ensure transparency and reproducibility in accordance with scientific evaluation requirements, this repository contains all system components:
@@ -37,8 +51,6 @@ To ensure transparency and reproducibility in accordance with scientific evaluat
 * `/ai_training_artifacts/`: (Directory for Dataset and Python Scripts)
 * Jupyter Notebook file for processing the SisFall dataset.
 * Script for feature extraction and SVM model training (Hyperparameter tuning and determination of the decision threshold $\tau = 1.102146$).
-
-
 * `/android_app/`: Source code for the monitoring application on the Android operating system (Kotlin). Communicates with the device via EMQX Broker and stores event logs in Firebase.
 
 ---
@@ -55,8 +67,3 @@ To ensure transparency and reproducibility in accordance with scientific evaluat
 * **Performed by students:**
 * Bui Tan Dat
 * Ha Huu Thinh
-
-
-* **Supervised by:** MSc. Ho Le Minh Toan, Dr. Pham Cong Thien
-
-*Thesis completed in July 2026.*
