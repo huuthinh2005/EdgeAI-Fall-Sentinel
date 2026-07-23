@@ -1,153 +1,304 @@
-# EdgeAI Fall Sentinel
+EdgeAI Fall Sentinel
 
-**Wearable fall-detection prototype using hybrid FSM--SVM verification on STM32 and cellular SMS/MQTT alerting**
+Wearable fall-detection prototype using hybrid FSM--SVM verification on STM32 and dual-channel SMS/MQTT alerting
 
-EdgeAI Fall Sentinel is a graduation-thesis prototype developed at the Faculty of Information Technology, Ho Chi Minh City University of Foreign Languages and Information Technology (HUFLIT). The system performs fall verification locally on an STM32F103C8T6 and uses a SIM7680C development module for cellular notification.
+EdgeAI Fall Sentinel is a graduation-thesis prototype developed at the Faculty of Information Technology, Ho Chi Minh City University of Foreign Languages and Information Technology (HUFLIT). The wearable performs candidate gating and fall verification locally on an STM32F103C8T6, while a SIM7680C development module provides GNSS, SMS, and MQTT connectivity. An Android application receives telemetry and alarm messages and stores selected records in Firebase.
 
-> **Research prototype:** This project is not a certified medical device and must not be used as the sole emergency-response mechanism.
+Research prototype: This system is not a certified medical device and must not be used as the sole emergency-response mechanism.
 
-## System overview
+System overview
 
-- **Hybrid edge inference:** a Finite State Machine (FSM) gates candidate impacts before a 9-feature linear Support Vector Machine (SVM) performs verification.
-- **Real-time sensing:** valid IMU samples are processed at 100 Hz and block-averaged in groups of 20 to obtain a 5 Hz AI representation.
-- **Bounded acquisition:** the nominal post-impact AI window contains 25 points over 5 seconds, with a 7-second safety timeout when invalid samples delay collection.
-- **Cooperative modem handling:** timer-driven sensor work, UART servicing, emergency cancellation and watchdog refresh continue during bounded AT-command waits.
-- **Local and remote notification:** the controlled prototype supports a local buzzer, SMS and MQTT. Plaintext MQTT is disabled by default in the public firmware build.
-- **Persistent configuration:** the emergency phone-number record is placed in a linker-reserved Flash region beginning at `0x0800F800`.
+Hybrid edge inference: a finite-state machine (FSM) screens candidate events before a nine-feature linear support-vector machine (SVM) performs verification.
 
-## Final offline model
+Continuous sensing: valid IMU samples are processed at 100 Hz.
 
-The final learning pipeline uses mutually exclusive subject-level training, validation and test cohorts containing 22, 8 and 8 SisFall subjects, respectively. The scaler and linear SVM are fitted only on the training cohort. The decision threshold is selected only from validation scores to satisfy recall >= 0.95, while the test cohort remains sequestered until final evaluation.
+Bounded AI acquisition: groups of 20 valid 100-Hz samples are averaged to form one 5-Hz point. A nominal AI window contains 25 points over 5 s, with a 7-s safety timeout.
+
+Cooperative modem handling: sensing, UART reception, alarm cancellation, and watchdog servicing continue during bounded AT-command waits.
+
+Local and remote notification: an SVM-confirmed event activates the local warning and starts a 10-s cancellation interval. If it is not cancelled, the firmware queries GNSS, sends an emergency SMS, and publishes an MQTT alarm.
+
+Adaptive telemetry: telemetry is scheduled every 5 min while moving and every 30 min while still.
+
+Persistent configuration: the caregiver phone-number record begins at 0x0800F800, outside the linker-limited application region.
+
+Final offline model
+
+The final learning pipeline uses mutually exclusive subject-level training, validation, and test cohorts from SisFall:
+
+Cohort
+
+Subjects
+
+Windows
+
+Training
+
+22
+
+13,406
+
+Validation
+
+8
+
+4,719
+
+Test
+
+8
+
+3,495
+
+Total
+
+38
+
+21,620
+
+The StandardScaler and linear SVM are fitted only on training subjects. The threshold is selected only from validation scores to satisfy recall >= 0.95; the test cohort remains sequestered until final evaluation.
 
 Deployed parameters:
 
-| Parameter | Value |
-| --- | ---: |
-| SVM decision threshold `tau` | `0.298502437` |
-| SVM bias | `-2.114027035` |
-| Number of features | 9 |
-| Training SVM configuration | Linear kernel, `C=1.0`, balanced class weights |
+Parameter
 
-Final subject-independent offline test confusion matrix, using the convention `[[TN, FP], [FN, TP]]`:
+Value
 
-```text
+SVM decision threshold tau
+
+0.298502437
+
+SVM bias
+
+-2.114027035
+
+Number of features
+
+9
+
+Classifier
+
+Linear SVM, C=1.0, balanced class weights
+
+Final subject-independent offline test confusion matrix using [[TN, FP], [FN, TP]]:
+
 [[2940, 42],
  [  11, 502]]
-```
 
-| Metric | Value |
-| --- | ---: |
-| Accuracy | 98.48% |
-| Precision | 92.28% |
-| Recall / Sensitivity | 97.86% |
-| Specificity | 98.59% |
-| F1-score | 94.99% |
-| False-positive rate | 1.41% |
-| False-negative rate | 2.14% |
+Metric
 
-These are **window-level offline classifier results**, not end-to-end accuracy of the complete wearable. The final exported model has not yet been re-evaluated in the previous 100-trial on-device pilot. Multiple windows may originate from the same subject, so simple binomial confidence intervals must not be interpreted as subject-level uncertainty.
+Value
 
-## Hardware
+Accuracy
 
-- **MCU:** STM32F103C8T6, ARM Cortex-M3, running at 36 MHz from the 8 MHz HSI divided by two and multiplied by nine through the PLL.
-- **IMU:** six-axis module compatible with the MPU60x0/MPU65x0 register map, connected over I2C and configured for +/-16 g and +/-2000 degrees/s. The tested unit returned `WHO_AM_I = 0x70`; it is therefore not claimed to be a confirmed original MPU6050.
-- **Cellular/GNSS:** SIM7680C development module connected through USART2.
-- **User interface:** local buzzer and hardware SOS/cancel button.
-- **Power mitigation:** a 2200 uF low-ESR capacitor is placed close to the 5 V VDD/USB input of the SIM7680C development module to reduce LTE current-transient effects.
+98.48%
 
-Battery runtime and average current have **not** been validated using a precision power analyzer. This repository therefore does not claim a measured 17 mA average current or a verified 63-hour runtime. Direct rail-level waveforms, BOR option-byte verification and battery-side energy logging remain future characterization work.
+Precision
 
-## Security defaults
+92.28%
 
-The distributed source is configured to fail closed:
+Recall / sensitivity
 
-```c
-#define APP_ENABLE_PLAINTEXT_MQTT        0
-#define APP_ALLOW_REMOTE_PHONE_CONFIG    0
-```
+97.86%
 
-Consequently, plaintext MQTT publication and remote caregiver-number updates are not enabled without an explicit deployment decision. These defaults reduce accidental disclosure but do **not** implement TLS in the STM32 firmware.
+Specificity
 
-Before enabling remote communication in a real deployment, provide:
+98.59%
 
-- certificate-validated TLS supported by the modem and broker;
-- broker authentication and per-device topic authorization;
-- private, deployment-specific endpoints and credentials;
-- integrity-protected, versioned configuration records;
-- a private emergency phone number supplied outside source control.
+F1-score
 
-The Android project externalizes deployment values through `secrets.properties`; start from `secrets.properties.example` and never commit the completed secrets file. Firebase rules included in the application archive must be reviewed and deployed for the intended project.
+94.99%
 
-## Flash configuration reservation
+False-positive rate
 
-The STM32F103C8T6 application image is limited to the first 62 KB of Flash:
+1.41%
 
-```ld
+False-negative rate
+
+2.14%
+
+These are window-level offline SVM results. They do not measure the end-to-end accuracy of the complete wearable, the FSM gate, user cancellation, or cellular delivery. Multiple windows may originate from one subject, so simple window-level confidence intervals must not be interpreted as subject-level uncertainty.
+
+Training and deployment alignment
+
+The offline and embedded pipelines intentionally share the same nine-feature order, scaling constants, SVM coefficients, bias, threshold, and tilt expression. The exported parameters in result/svm_model_generated.txt match the constants in the current firmware.
+
+A remaining limitation is window construction:
+
+SisFall recordings are sampled at 200 Hz and averaged in groups of 40 to obtain 5-Hz points.
+
+Training fall windows are peak-centered.
+
+Firmware samples at 100 Hz and averages groups of 20 valid samples.
+
+The embedded window begins with the first confirmed impact in its first averaging bucket and is predominantly post-impact.
+
+Therefore, the offline metrics characterize the held-out SVM windows and must not be presented as final deployed or clinical performance. A pre-trigger circular buffer or retraining with firmware-equivalent windows is required for stronger deployment claims.
+
+Hardware
+
+MCU: STM32F103C8T6, ARM Cortex-M3, operated at 36 MHz.
+
+IMU: six-axis module compatible with the MPU60x0/MPU65x0 register map, connected over I2C and configured for +/-16 g and +/-2000 deg/s. The tested unit returned WHO_AM_I = 0x70; it is not claimed to be a confirmed original MPU6050.
+
+Cellular/GNSS: SIM7680C development module connected through USART2.
+
+Local interface: buzzer/LED outputs and a hardware SOS/cancel button.
+
+Power path: a TP4056 module charges the Li-Po cell, while an MT3608 supplies 5 V to the VDD/USB input of the SIM7680C development board.
+
+Transient mitigation: a 2200-uF low-ESR capacitor is placed close to the SIM7680C board's 5-V input.
+
+Battery runtime, average current, direct MCU-rail transient waveforms, and POR/PDR/PVD margin have not been characterized using dedicated measurement equipment.
+
+Communication and security status
+
+The integrated firmware currently builds with:
+
+#define ENABLE_SIM 1
+
+For controlled prototype testing, it connects to:
+
+tcp://broker.emqx.io:1883
+
+and uses the following MQTT topics:
+
+thiet_bi/cai_dat
+thiet_bi/telemetry
+thiet_bi/bao_dong
+
+The current MQTT path is unauthenticated and unencrypted. It is suitable only for controlled prototype demonstrations. Production deployment would require certificate-validated TLS, broker authentication, per-device topic authorization, private deployment-specific identifiers, and integrity-protected versioned configuration records.
+
+Do not commit private emergency phone numbers, Firebase service-account credentials, keystores, completed deployment secrets, or other personal data.
+
+Flash Page 62 reservation
+
+The linker script limits the application to the first 62 KiB of Flash:
+
 FLASH (rx) : ORIGIN = 0x08000000, LENGTH = 62K
-```
 
-The range `0x0800F800`--`0x0800FFFF` is reserved for persistent configuration, with the phone-number record beginning at `0x0800F800`. The linker script must enforce this boundary; a C constant alone is insufficient. Before releasing a firmware binary, retain the generated `.map` file and verify that no application section reaches the reserved page.
+Persistent configuration begins at 0x0800F800. In the retained final linker map:
 
-## Repository contents
+the .data load image begins at 0x0800D638;
 
-The current repository distributes the implementation as archives:
+the .data load image ends at 0x0800D81C;
 
-```text
+the remaining margin before 0x0800F800 is 0x1FE4, or 8,164 bytes.
+
+Relevant evidence:
+
+firmware/Fall_Detection_STM32/STM32F103C8TX_FLASH.ld
+firmware/Fall_Detection_STM32/Debug/falldetection_real5.map
+
+The project must be rebuilt and the map rechecked whenever firmware changes.
+
+Repository contents
+
 EdgeAI-Fall-Sentinel/
-|-- FallDetectionSTM32.zip   # STM32CubeIDE firmware project
-|-- FallDetectionApp.zip     # Android/Kotlin application project
+|-- androidapp/
+|   `-- FallDetectionApp/App/          # Android/Kotlin project
+|-- firmware/
+|   `-- Fall_Detection_STM32/          # STM32CubeIDE project
+|-- training/
+|   `-- TrainDetectionAI/
+|       `-- TrainAIDetection.ipynb     # Subject-independent training notebook
+|-- result/
+|   |-- svm_model_generated.txt        # Exported scaler/SVM constants
+|   `-- svm_training_results.json      # Split, window counts, and metrics
 `-- README.md
-```
 
-Extract the archives before building or reviewing the source. For better reproducibility, future releases should also expose browsable `firmware/`, `android_app/` and `ai_training/` directories rather than relying only on ZIP files.
+The raw SisFall dataset is not redistributed. Download it from the dataset source cited in the paper and place the converted CSV files in the training data directory expected by the notebook.
 
-The exact final training notebook/script, subject-split manifest, Python environment lockfile and machine-readable evaluation outputs are not included in the current repository revision. They must be added before the repository can be considered a complete independent-reproduction package.
+Reproducibility artifacts
 
-## Build notes
+result/svm_training_results.json records:
 
-### Firmware
+random seed and target recall;
 
-1. Extract `FallDetectionSTM32.zip`.
-2. Import the project into STM32CubeIDE.
-3. Keep deployment-specific values in the private application configuration header; do not hard-code real phone numbers or credentials in tracked source.
-4. Confirm that the active linker script contains `FLASH LENGTH = 62K`.
-5. Build the project and inspect the generated `.map` file to ensure the application does not overlap `0x0800F800`.
+processed-file and total-window counts;
 
-### Android application
+exact training, validation, and test subject lists;
 
-1. Extract `FallDetectionApp.zip` and open the project in Android Studio.
-2. Copy `secrets.properties.example` to `secrets.properties`.
-3. Configure a private TLS-capable broker and the intended Firebase project without committing secrets.
-4. Review and deploy the supplied Firebase Realtime Database and Firestore rules.
-5. Build and test the application on a controlled account before connecting it to a device.
+training, validation, and test window counts;
 
-## Known limitations
+validation threshold and validation metrics;
 
-1. **Training/deployment window mismatch:** offline fall windows are peak-centered, whereas the firmware collects a predominantly post-impact window. A pre-trigger circular buffer or retraining with firmware-equivalent windows is required.
-2. **Final on-device validation pending:** the earlier five-subject, 100-trial pilot used an older scaler, classifier, bias and threshold. Its 94% F1-score must not be attributed to the final model.
-3. **Communication security incomplete:** the STM32 release fails closed but does not yet provide certificate-validated MQTT TLS.
-4. **Timing characterization pending:** worst-case sampling deadlines, UART overflow/desynchronization and end-to-end GNSS/cellular latency distributions have not been measured systematically.
-5. **Power characterization pending:** battery-side current, energy and runtime require precision logging across standby, telemetry and alarm scenarios.
-6. **External validity limited:** broader evaluation with target users, varied body placements, repeated grouped splits and subject-level reporting is required.
+test confusion matrix, classification report, and specificity.
 
-## Citation
+result/svm_model_generated.txt contains the exact exported constants used by the firmware.
 
-Repository: <https://github.com/huuthinh2005/EdgeAI-Fall-Sentinel>
+Build notes
 
-Revision used by the current paper draft: `6c53aa865f0f04c614a18b36cb7e3b4f62e002a0` (July 18, 2026).
+Firmware
 
-If the repository is updated, update the revision cited in the paper before submission.
+Open or import firmware/Fall_Detection_STM32 in STM32CubeIDE.
 
-## Authors
+Confirm that the active linker script is STM32F103C8TX_FLASH.ld.
 
-- Bui Tan Dat
-- Ha Huu Thinh
+Rebuild the project.
+
+Inspect the generated map and verify that no Flash load section reaches 0x0800F800.
+
+Keep deployment-specific phone numbers and credentials outside source control.
+
+Android application
+
+Open androidapp/FallDetectionApp/App in Android Studio.
+
+Supply the intended Firebase configuration locally; do not commit service-account credentials.
+
+Review Firebase Authentication, Realtime Database, and Firestore rules for the intended test project.
+
+Build and test with controlled accounts and non-sensitive prototype data.
+
+Model training
+
+Open training/TrainDetectionAI/TrainAIDetection.ipynb.
+
+Provide the SisFall CSV directory expected by the notebook.
+
+Run all cells to reproduce the subject split, model export, and evaluation JSON.
+
+Confirm that the generated constants match firmware/Fall_Detection_STM32/Core/Src/main.c.
+
+Known limitations
+
+Training/deployment window mismatch: training uses peak-centered windows, while firmware uses a predominantly post-impact window.
+
+Final-model device validation pending: the exact deployed model has not undergone a controlled, quantitative on-device replay or equivalence study.
+
+Communication security incomplete: the current public-broker MQTT path uses plaintext port 1883 without authentication.
+
+Timing characterization pending: worst-case sampling deadlines, UART overflow/desynchronization, and end-to-end GNSS/cellular latency distributions have not been measured systematically.
+
+Power characterization pending: battery-side current, energy, runtime, and MCU-rail transient margin require dedicated measurement.
+
+External validity limited: broader evaluation with target users, varied placements, repeated grouped splits, and subject-level uncertainty reporting is required.
+
+Data and ethics statement
+
+Quantitative machine-learning development and evaluation use only the public, de-identified SisFall dataset. No additional human-participant dataset was collected. The prototype photograph documents a voluntary author-performed qualitative engineering self-demonstration and was not used for model training or quantitative evaluation.
+
+Citation and versioning
+
+Repository:
+
+https://github.com/huuthinh2005/EdgeAI-Fall-Sentinel
+
+For a manuscript or thesis, cite an immutable commit URL rather than the moving main branch. After the final repository update, copy the resulting commit SHA into the paper's Data Availability section.
+
+Authors
+
+Bui Tan Dat
+
+Ha Huu Thinh
 
 Supervisors:
 
-- Pham Cong Thien
-- Ho Le Minh Toan
+Ho Le Minh Toan
 
-## License status
+Pham Cong Thien
 
-No project-level license has been selected in the current repository revision. The source is publicly available for academic review, but reuse and redistribution permissions are not granted until a `LICENSE` file is added. Do not describe the project as open source until an explicit license is published.
+License status
+
+No project-level license has been selected. The source is publicly available for academic review, but reuse and redistribution permissions are not granted until a LICENSE file is added. Do not describe the repository as open source unless an explicit license is published.
