@@ -1,0 +1,98 @@
+{
+  "random_state": 42,
+  "data_directory": "Fall Detection csv",
+  "files_processed": 4396,
+  "files_skipped": 0,
+  "total_windows": 21620,
+  "feature_count": 9,
+  "target_recall": 0.95,
+  "validation_threshold": 0.2985024366488851,
+  "validation_precision": 0.9546247818499127,
+  "validation_recall": 0.9794091316025068,
+  "validation_f1": 0.966858152894388,
+  "train_subjects": [
+    "SA02",
+    "SA03",
+    "SA04",
+    "SA06",
+    "SA08",
+    "SA10",
+    "SA11",
+    "SA12",
+    "SA13",
+    "SA15",
+    "SA16",
+    "SA17",
+    "SA18",
+    "SA19",
+    "SA23",
+    "SE02",
+    "SE03",
+    "SE06",
+    "SE07",
+    "SE10",
+    "SE12",
+    "SE13"
+  ],
+  "validation_subjects": [
+    "SA01",
+    "SA09",
+    "SA20",
+    "SA21",
+    "SA22",
+    "SE01",
+    "SE09",
+    "SE15"
+  ],
+  "test_subjects": [
+    "SA05",
+    "SA07",
+    "SA14",
+    "SE04",
+    "SE05",
+    "SE08",
+    "SE11",
+    "SE14"
+  ],
+  "train_windows": 13406,
+  "validation_windows": 4719,
+  "test_windows": 3495,
+  "confusion_matrix": [
+    [
+      2940,
+      42
+    ],
+    [
+      11,
+      502
+    ]
+  ],
+  "test_specificity": 0.9859154929577465,
+  "classification_report": {
+    "ADL": {
+      "precision": 0.9962724500169434,
+      "recall": 0.9859154929577465,
+      "f1-score": 0.9910669138715659,
+      "support": 2982.0
+    },
+    "Fall": {
+      "precision": 0.9227941176470589,
+      "recall": 0.9785575048732943,
+      "f1-score": 0.9498580889309366,
+      "support": 513.0
+    },
+    "accuracy": 0.9848354792560801,
+    "macro avg": {
+      "precision": 0.9595332838320012,
+      "recall": 0.9822364989155203,
+      "f1-score": 0.9704625014012512,
+      "support": 3495.0
+    },
+    "weighted avg": {
+      "precision": 0.9854872183987029,
+      "recall": 0.9848354792560801,
+      "f1-score": 0.9850182365626838,
+      "support": 3495.0
+    }
+  }
+}

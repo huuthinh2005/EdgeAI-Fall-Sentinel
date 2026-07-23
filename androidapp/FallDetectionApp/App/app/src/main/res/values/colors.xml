@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="black">#FF000000</color>
+    <color name="white">#FFFFFFFF</color>
+
+    <!-- Apple Design System Colors -->
+    <color name="apple_pure_black">#000000</color>
+    <color name="apple_light_gray">#f5f5f7</color>
+    <color name="apple_near_black">#1d1d1f</color>
+
+    <color name="apple_blue">#0071e3</color>
+    <color name="apple_link_blue">#0066cc</color>
+    <color name="apple_bright_blue">#2997ff</color>
+
+    <color name="apple_text_primary">#1d1d1f</color>
+    <color name="apple_text_secondary">#CC000000</color>
+    <color name="apple_text_tertiary">#7A000000</color>
+
+    <color name="apple_dark_surface_1">#272729</color>
+    <color name="apple_dark_surface_2">#262628</color>
+    <color name="apple_dark_surface_3">#28282a</color>
+    <color name="apple_dark_surface_4">#2a2a2d</color>
+    <color name="apple_dark_surface_5">#242426</color>
+
+    <color name="apple_button_active">#ededf2</color>
+    <color name="apple_button_default_light">#fafafc</color>
+    <color name="apple_overlay">#A3D2D2D7</color> <!-- 64% of #D2D2D7 -->
+</resources>

@@ -1,0 +1,162 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/white"
+    android:gravity="center_horizontal"
+    android:orientation="vertical"
+    android:padding="32dp">
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="8dp">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentStart="true"
+            android:text="Trạng thái hệ thống"
+            style="@style/AppleHeadline"
+            android:textSize="20sp" />
+
+        <TextView
+            android:id="@+id/batteryTextView"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentEnd="true"
+            android:text="🔋 --%"
+            android:textSize="16sp"
+            android:textColor="@color/apple_text_secondary"
+            android:textStyle="bold" />
+    </RelativeLayout>
+
+    <TextView
+        android:id="@+id/statusTextView"
+        style="@style/AppleBody"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="8dp"
+        android:background="@drawable/edit_text_background"
+        android:gravity="center"
+        android:minHeight="80dp"
+        android:padding="16dp"
+        android:text="Đang kết nối hệ thống..."
+        android:textColor="@color/apple_blue" />
+
+    <Button
+        android:id="@+id/resetAlarmButton"
+        style="@style/Widget.Material3.Button.TextButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="16dp"
+        android:text="Xác nhận &amp; Đặt lại trạng thái"
+        android:visibility="gone"
+        android:textColor="@color/apple_text_secondary" />
+
+    <!-- Map Link Section -->
+    <LinearLayout
+        android:id="@+id/mapContainer"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:background="@drawable/edit_text_background"
+        android:padding="15dp"
+        android:layout_marginBottom="12dp"
+        android:gravity="center"
+        android:clickable="true"
+        android:focusable="true">
+
+        <ImageView
+            android:layout_width="35dp"
+            android:layout_height="35dp"
+            android:src="@android:drawable/ic_dialog_map"
+            app:tint="@color/apple_blue"
+            android:layout_marginBottom="4dp"
+            android:contentDescription="Map Icon" />
+
+        <TextView
+            android:id="@+id/mapLocationText"
+            style="@style/AppleBody"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Xem vị trí trên Bản đồ"
+            android:textColor="@color/apple_link_blue"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/coordsTextView"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Chưa có dữ liệu vị trí"
+            android:textSize="12sp"
+            android:textColor="@color/apple_text_secondary" />
+    </LinearLayout>
+
+    <Button
+        android:id="@+id/historyButton"
+        style="@style/Widget.Material3.Button.TextButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="📋 Xem lịch sử báo động"
+        android:textColor="@color/apple_blue"
+        android:layout_marginBottom="16dp"/>
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="#E5E5E5"
+        android:layout_marginBottom="16dp"/>
+
+    <TextView
+        style="@style/AppleHeadline"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="start"
+        android:layout_marginBottom="4dp"
+        android:text="Cài đặt khẩn cấp"
+        android:textSize="20sp" />
+
+    <TextView
+        style="@style/AppleBody"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="start"
+        android:layout_marginBottom="8dp"
+        android:text="Số điện thoại nhận tin nhắn cảnh báo"
+        android:textColor="@color/apple_text_secondary"
+        android:textSize="13sp" />
+
+    <EditText
+        android:id="@+id/phoneEditText"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="12dp"
+        android:background="@drawable/edit_text_background"
+        android:fontFamily="sans-serif"
+        android:hint="Nhập số điện thoại (VD: 09...)"
+        android:inputType="phone"
+        android:textSize="16sp" />
+
+    <Button
+        android:id="@+id/sendConfigButton"
+        style="@style/AppleButtonSecondary"
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        android:text="Lưu số điện thoại" />
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1" />
+
+    <Button
+        android:id="@+id/logoutButton"
+        style="@style/Widget.Material3.Button.TextButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Đăng xuất"
+        android:textColor="@color/apple_bright_blue" />
+
+</LinearLayout>
