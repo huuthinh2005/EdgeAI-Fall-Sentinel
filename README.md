@@ -23,8 +23,8 @@ Deployed parameters:
 
 | Parameter | Value |
 | --- | ---: |
-| SVM decision threshold `tau` | `0.298334268` |
-| SVM bias | `-2.114391647` |
+| SVM decision threshold `tau` | `0.298502437` |
+| SVM bias | `-2.114027035` |
 | Number of features | 9 |
 | Training SVM configuration | Linear kernel, `C=1.0`, balanced class weights |
 
